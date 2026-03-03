@@ -1,6 +1,6 @@
 const Database = require('better-sqlite3');
 
-const db = new Database('src/database.sqlite');
+const db = new Database(process.env.DATABASE);
 
 db.exec(`
   CREATE TABLE IF NOT EXISTS cunei (

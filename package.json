@@ -15,5 +15,8 @@
     "dotenv": "^17.2.3",
     "express": "^5.2.1",
     "jsdom": "^27.4.0"
+  },
+  "devDependencies": {
+    "@types/node": "^25.3.3"
   }
 }

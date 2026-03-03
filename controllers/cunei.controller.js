@@ -1,14 +1,15 @@
 const db = require('../src/db');
 const {JSDOM} = require('jsdom');
 
-exports.addCunei = (req, res) => {
-    // Logic to add a new cunei
-    res.send('Cunei added');
+
+exports.getCuneiAll = (req, res) => {
+    const rows = db.prepare('select * from cunei').all()
+    res.send(rows);
 }
 
 exports.getCunei = (req, res) => {
-    // Logic to get all cunei
-    res.send('List of cunei');
+    const row = db.prepare('select * from cunei where id = ?').get(req.params.id)
+    res.send(row);
 }
 
 exports.scrapCunei = async (req, res) => {
@@ -23,9 +24,11 @@ exports.scrapCunei = async (req, res) => {
         const unicodeUrIII = cellValues[0].replace(/\s+/g, ' ');
         const unicodeNeoAssyrian = cellValues[1].replace(/\s+/g, ' ');
         const phonetic = cellValues[2].replace(/\s+/g, ' ');
-        if (phonetic.match(/\.|over|x|squared|\+|crossing/) || unicodeUrIII !== unicodeNeoAssyrian) return;
+        if (phonetic.match(/\.|over|x|squared|\+|crossing/) || unicodeUrIII !== unicodeNeoAssyrian || unicodeUrIII.length !== 2) return;
         values.push({unicode: unicodeUrIII, phonetic: phonetic});
     });
+    db.prepare('delete from cunei').run()
+    db.prepare('delete from sqlite_sequence where name=\'cunei\'').run()
     const insert = db.prepare(
         'INSERT OR IGNORE INTO cunei (unicode, phonetic) VALUES (?, ?)'
     );

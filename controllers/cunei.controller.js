@@ -12,6 +12,27 @@ exports.getCunei = (req, res) => {
     res.send(row);
 }
 
+exports.deleteCunei = (req, res) => {
+    const id = req.params.id
+    const result = db.prepare('delete from cunei where id = ?').run(id)
+    const response = result.changes > 0 ?
+        {response: `Successfully deleted id '${id}'`, code: 200} :
+        {response: `Id '${id}' not found`, code: 400}
+    res.send()
+}
+
+exports.getNextCunei = (req, res) => {
+    const id = req.params.id
+    const row = db.prepare('select * from cunei where id > ? order by id limit 1').get(req.params.id)
+    res.send(row);
+}
+
+exports.getPreviousCunei = (req, res) => {
+    const id = req.params.id
+    const row = db.prepare('select * from cunei where id < ? order by id desc limit 1').get(req.params.id)
+    res.send(row);
+}
+
 exports.scrapCunei = async (req, res) => {
     const response = await fetch('https://home.zcu.cz/~ksaskova/ListOfCuneiformSigns.html');
     const html = await response.text();

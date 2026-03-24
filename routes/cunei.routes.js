@@ -4,6 +4,8 @@ const c = require('../controllers/cunei.controller');
 router.get('/', c.getCuneiAll);
 router.get('/scrap', c.scrapCunei);
 router.get('/:id', c.getCunei)
+router.get('/:id/next', c.getNextCunei)
+router.get('/:id/previous', c.getPreviousCunei)
 router.delete('/:id', c.deleteCunei)
 
 module.exports = router;

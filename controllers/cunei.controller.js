@@ -18,7 +18,7 @@ exports.deleteCunei = (req, res) => {
     const response = result.changes > 0 ?
         {response: `Successfully deleted id '${id}'`, code: 200} :
         {response: `Id '${id}' not found`, code: 400}
-    res.send(response)
+    res.status(response.code).send(response.response)
 }
 
 exports.getNextCunei = (req, res) => {
@@ -60,4 +60,15 @@ exports.scrapCunei = async (req, res) => {
 
     insertMany(values);
     res.send(`Scraped and inserted ${values.length} cunei`);
+}
+
+
+exports.adminMiddleware =  (req, res, next) => {
+    const header = req.headers.authorization
+    if(!header?.startsWith('ApiKey ') )
+        return res.status(401).send("Unauthorized")
+    const key = header.split(' ')[1]
+    if(key !== process.env.ADMIN_API_KEY)
+        return res.status(403).send("Forbidden")
+    next()
 }

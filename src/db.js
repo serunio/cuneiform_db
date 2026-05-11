@@ -8,15 +8,16 @@ db.exec(`
         id          INTEGER PRIMARY KEY AUTOINCREMENT,
         unicode     TEXT NOT NULL UNIQUE,
         phonetic    TEXT NOT NULL,
-        description TEXT
+        description TEXT,
+        chosen      integer default false
     );
 
     CREATE TABLE IF NOT EXISTS users
     (
-        id          text PRIMARY KEY,
-        email       TEXT NOT NULL,
-        name        TEXT,
-        admin       int  not null default false
+        id    text PRIMARY KEY,
+        email TEXT NOT NULL,
+        name  TEXT,
+        admin int  not null default false
     );
 
     create table if not exists submissions

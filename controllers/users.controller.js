@@ -3,7 +3,6 @@ const {auth} = require('./../firebase')
 const jwt = require('jsonwebtoken')
 
 exports.login = async (req, res) => {
-
     const header = req.headers.authorization
     if(!header?.startsWith("Bearer ")) {
         return res.status(401).send("No token")
@@ -19,7 +18,8 @@ exports.login = async (req, res) => {
     }
     const user = db.prepare('select * from users where id = ?').get(decoded.uid)
     if (user === undefined) {
-        db.prepare('insert into users (id, email, name) values (?, ?, ?)').run(decoded.uid, decoded.email, decoded.name)
+        db.prepare('insert into users (id, email, name) values (?, ?, ?)')
+            .run(decoded.uid, decoded.email, decoded.name)
     }
 
     const payload = {
@@ -30,6 +30,5 @@ exports.login = async (req, res) => {
     }
 
     const jwtToken = jwt.sign(payload, process.env.JWT_SECRET, {expiresIn: '1h'})
-    console.log(jwtToken)
     res.send(jwtToken)
 }

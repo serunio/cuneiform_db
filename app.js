@@ -9,5 +9,6 @@ app.use(cors({
 }));
 app.use('/cunei', require('./routes/cunei.routes'));
 app.use('/users', require('./routes/users.routes'));
+app.use('/submissions', require('./routes/submissions.routes'))
 
 module.exports = app;

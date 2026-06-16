@@ -22,6 +22,6 @@
     "varint": "^6.0.0"
   },
   "devDependencies": {
-    "@types/node": "^25.3.3"
+    "@types/node": "^25.9.3"
   }
 }

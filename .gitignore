@@ -1,0 +1,3 @@
+node_modules
+cunei-collector-firebase-adminsdk-*.json
+.env

@@ -1,6 +1,6 @@
 const admin = require("firebase-admin");
 
-const serviceAccount = require("./cunei-collector-firebase-adminsdk-fbsvc-1010dbebd5.json");
+// const serviceAccount = require("./cunei-collector-firebase-adminsdk-fbsvc-1010dbebd5.json");
 
 
 // admin.initializeApp({

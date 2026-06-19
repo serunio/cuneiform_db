@@ -1,36 +1,44 @@
-const Database = require('better-sqlite3');
+const { Pool } = require('pg');
 
-const db = new Database(process.env.DATABASE);
+const db = new Pool({
+    connectionString: process.env.DATABASE_URL,
+    ssl: {
+        rejectUnauthorized: false
+    },
+    family: 4
+});
 
-db.exec(`
-    CREATE TABLE IF NOT EXISTS cunei
-    (
-        id          INTEGER PRIMARY KEY AUTOINCREMENT,
-        unicode     TEXT NOT NULL UNIQUE,
-        phonetic    TEXT NOT NULL,
-        description TEXT,
-        chosen      integer default false
-    );
+async function initDb() {
+    await db.query(`
+        CREATE TABLE IF NOT EXISTS cunei
+        (
+            id BIGSERIAL PRIMARY KEY,
+            unicode TEXT NOT NULL UNIQUE,
+            phonetic TEXT NOT NULL,
+            description TEXT,
+            chosen BOOLEAN DEFAULT FALSE
+        );
 
-    CREATE TABLE IF NOT EXISTS users
-    (
-        id    text PRIMARY KEY,
-        email TEXT NOT NULL,
-        name  TEXT,
-        admin int  not null default false
-    );
+        CREATE TABLE IF NOT EXISTS users
+        (
+            id TEXT PRIMARY KEY,
+            email TEXT NOT NULL,
+            name TEXT,
+            admin BOOLEAN NOT NULL DEFAULT FALSE
+        );
 
-    create table if not exists submissions
-    (
-        id       integer primary key autoincrement,
-        cunei_id integer not null,
-        user_id  text    not null,
-        data     blob    not null,
+        CREATE TABLE IF NOT EXISTS submissions
+        (
+            id BIGSERIAL PRIMARY KEY,
+            cunei_id BIGINT NOT NULL REFERENCES cunei(id),
+            user_id TEXT NOT NULL REFERENCES users(id),
+            data BYTEA NOT NULL
+        );
+    `);
+}
 
-        foreign key (cunei_id) references cunei (id),
-        foreign key (user_id) references users (id)
-    );
-`);
+initDb()
+    .then(() => console.log('Database initialized'))
+    .catch(console.error);
 
 module.exports = db;
-

@@ -28,15 +28,23 @@ exports.verifyJWT = (req, res, next) => {
     next()
 }
 
-exports.verifyAdmin = (req, res, next) => {
-    const decodedJWT = req.decodedJWT
+exports.verifyAdmin = async (req, res, next) => {
+    const decodedJWT = req.decodedJWT;
 
     if (decodedJWT.admin !== 1) {
-        return res.status(401).send("Unauthorized (no admin in JWT)")
+        return res.status(401).send("Unauthorized (no admin in JWT)");
     }
-    const result = db.prepare(`select admin = true as 'isAdmin' from users where id = ?`).get(decodedJWT.uid)
-    if (result['isAdmin'] !== 1) {
-        return res.status(401).send("Unauthorized (no admin in db)")
+
+    const result = await db.query(
+        'SELECT admin AS "isAdmin" FROM users WHERE id = $1',
+        [decodedJWT.uid]
+    );
+
+    const user = result.rows[0];
+
+    if (!user || user.isAdmin !== true) {
+        return res.status(401).send("Unauthorized (no admin in db)");
     }
-    next()
-}
+
+    next();
+};

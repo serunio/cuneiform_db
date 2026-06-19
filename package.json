@@ -19,6 +19,7 @@
     "firebase-admin": "^13.7.0",
     "jsdom": "^27.4.0",
     "jsonwebtoken": "^9.0.3",
+    "pg": "^8.22.0",
     "varint": "^6.0.0"
   },
   "devDependencies": {

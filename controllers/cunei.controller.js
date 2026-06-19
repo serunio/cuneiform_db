@@ -1,37 +1,46 @@
+const { user } = require('pg/lib/defaults');
 const db = require('../src/db');
 const {JSDOM} = require('jsdom');
 
-exports.getCuneiAll = (req, res) => {
-    const rows = db.prepare('select * from cunei').all()
+exports.getCuneiAll = async (req, res) => {
+    const result = await db.query('select * from cunei');
+    const rows = result.rows;
     res.send(rows);
 }
 
-exports.getCunei = (req, res) => {
-    const row = db.prepare('select * from cunei where id = ?').get(req.params.id)
+exports.getCunei = async (req, res) => {
+    const result = await db.query('select * from cunei where id = $1', [req.params.id])
+    const row = result.rows[0]
     res.send(row);
 }
 
-exports.getCuneiForUser = (req, res) => {
-    const userId = req.decodedJWT.uid
-    const rows = db.prepare
-    ('select c.id, c.phonetic, c.unicode, count(*) filter ( where s.user_id = ?) as user_count, count(*) filter ( where s.user_id is not null ) as total_count from cunei c left join submissions s on s.cunei_id = c.id where c.chosen = true group by c.id')
-        .all(userId)
-    res.send(rows)
-}
+exports.getCuneiForUser = async (req, res) => {
+    const userId = req.decodedJWT.uid;
 
-exports.deleteCunei = (req, res) => {
-    const id = req.params.id
-    const result = db.prepare('delete from cunei where id = ?').run(id)
-    const response = result.changes > 0 ?
-        {response: `Successfully deleted id '${id}'`, code: 200} :
-        {response: `Id '${id}' not found`, code: 400}
-    res.status(response.code).send(response.response)
-}
+    const result = await db.query(
+        `
+        SELECT
+            c.id,
+            c.phonetic,
+            c.unicode,
+            COUNT(s.user_id) FILTER (WHERE s.user_id = $1) AS user_count,
+            COUNT(s.user_id) FILTER (WHERE s.user_id IS NOT NULL) AS total_count
+        FROM cunei c
+        LEFT JOIN submissions s ON s.cunei_id = c.id
+        WHERE c.chosen = true
+        GROUP BY c.id, c.phonetic, c.unicode
+        `,
+        [userId]
+    );
 
-exports.chooseCunei = (req, res) => {
+    res.send(result.rows);
+};
+
+exports.chooseCunei = async (req, res) => {
     const id = req.params.id
     try {
-        const result = db.prepare('update cunei set chosen = true where id = ?').run(id)
+        const result = await db.query('update cunei set chosen = true where id = $1', [id])
+        console.log(result)
         res.send(`cunei ${id} chosen`)
     } catch (e) {
         console.log(e)
@@ -39,13 +48,15 @@ exports.chooseCunei = (req, res) => {
     }
 }
 
-exports.getNextCunei = (req, res) => {
-    const row = db.prepare('select * from cunei where id > ? order by id limit 1').get(req.params.id)
+exports.getNextCunei = async (req, res) => {
+    const result = await db.query('select * from cunei where id > $1 order by id limit 1', [req.params.id])
+    const row = result.rows[0]
     res.send(row);
 }
 
-exports.getPreviousCunei = (req, res) => {
-    const row = db.prepare('select * from cunei where id < ? order by id desc limit 1').get(req.params.id)
+exports.getPreviousCunei = async (req, res) => {
+    const result = await db.query('select * from cunei where id < $1 order by id limit 1', [req.params.id])
+    const row = result.rows[0]
     res.send(row);
 }
 
@@ -64,18 +75,20 @@ exports.scrapCunei = async (req, res) => {
         if (phonetic.match(/\.|over|x|squared|\+|crossing/) || unicodeUrIII !== unicodeNeoAssyrian || unicodeUrIII.length !== 2) return;
         values.push({unicode: unicodeUrIII, phonetic: phonetic});
     });
-    db.prepare('delete from cunei').run()
-    db.prepare('delete from sqlite_sequence where name=\'cunei\'').run()
-    const insert = db.prepare(
-        'INSERT OR IGNORE INTO cunei (unicode, phonetic) VALUES (?, ?)'
+
+    await db.query(
+        'TRUNCATE TABLE cunei RESTART IDENTITY CASCADE'
     );
 
-    const insertMany = db.transaction((rows) => {
-        for (const row of rows) {
-            insert.run(row.unicode, row.phonetic);
-        }
-    });
-
-    insertMany(values);
+    for (const row of values) {
+        await db.query(
+            `
+            INSERT INTO cunei (unicode, phonetic)
+            VALUES ($1, $2)
+            ON CONFLICT (unicode) DO NOTHING
+            `,
+            [row.unicode, row.phonetic]
+        );
+    }
     res.send(`Scraped and inserted ${values.length} cunei`);
 }

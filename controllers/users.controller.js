@@ -10,7 +10,7 @@ exports.login = async (req, res) => {
     }
 
     const token = header.split(" ")[1];
-
+    
     let decoded;
     try {
         decoded = await auth().verifyIdToken(token);

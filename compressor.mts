@@ -62,7 +62,7 @@ function zigzagDecode(strokes:Stroke[]):Stroke[] {
 function makeBuffer(strokes:Stroke[]):Buffer {
     const starts = []
     const lengths = []
-    let data = []
+    let data:Array<number> = []
     const count = strokes.length
     for (const s of strokes) {
         starts.push(s[0].x)
@@ -143,6 +143,7 @@ function rebuildStrokes(buffer:Buffer):Stroke[] {
 }
 
 function compress(raw:string):Buffer {
+    compressTest(raw)
     return makeBuffer(zigzagEncode(deltaEncode(getStrokes(raw))))
 }
 

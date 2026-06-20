@@ -44,7 +44,7 @@ exports.login = async (req, res) => {
         const jwtToken = jwt.sign(
             payload,
             process.env.JWT_SECRET,
-            { expiresIn: '1h' }
+            { expiresIn: '30d' }
         );
 
         res.send(jwtToken);
@@ -54,3 +54,7 @@ exports.login = async (req, res) => {
         res.status(500).send("db error");
     }
 };
+
+exports.me = async (req, res) => {
+    res.status(200).send("ok")
+}

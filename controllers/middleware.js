@@ -28,6 +28,16 @@ exports.verifyJWT = (req, res, next) => {
     next()
 }
 
+exports.checkBlacklist = (req, res, next) => {
+    const userId = req.decodedJWT.uid;
+    const result = await db.query(`SELECT blacklist from users where id=$1`, [userId])
+    const isBlacklisted = result.rows[0].blacklist
+    if (isBlacklisted)
+        res.status(401).send('Blacklisted')
+    else
+        next()
+}
+
 exports.verifyAdmin = async (req, res, next) => {
     const decodedJWT = req.decodedJWT;
 

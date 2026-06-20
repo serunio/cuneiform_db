@@ -59,8 +59,6 @@ exports.me = async (req, res) => {
     const userId = req.decodedJWT.uid;
     const result = await db.query(`SELECT blacklist from users where id=$1`, [userId])
     const isBlacklisted = result.rows[0].blacklist
-    console.log('blacklisted:')
-    console.log(isBlacklisted)
     if (isBlacklisted)
         res.status(401).send('Blacklisted')
     else

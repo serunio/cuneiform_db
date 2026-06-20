@@ -75,10 +75,11 @@ exports.getNext = async (req, res) => {
         LEFT JOIN submissions s ON s.cunei_id = c.id
         WHERE c.chosen = true
         GROUP BY c.id, c.phonetic, c.unicode
+        ORDER BY user_count, total_count, RANDOM()
         LIMIT 1`,
         [userId]
     );
-    
+
     const row = result.rows[0]
     res.send(row);
 }

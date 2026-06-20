@@ -60,6 +60,29 @@ exports.getPreviousCunei = async (req, res) => {
     res.send(row);
 }
 
+exports.getNext = async (req, res) => {
+    const userId = req.decodedJWT.uid;
+
+    const result = await db.query(
+        `
+        SELECT
+            c.id,
+            c.phonetic,
+            c.unicode,
+            COUNT(s.user_id) FILTER (WHERE s.user_id = $1) AS user_count,
+            COUNT(s.user_id) FILTER (WHERE s.user_id IS NOT NULL) AS total_count
+        FROM cunei c
+        LEFT JOIN submissions s ON s.cunei_id = c.id
+        WHERE c.chosen = true
+        GROUP BY c.id, c.phonetic, c.unicode
+        LIMIT 1`,
+        [userId]
+    );
+    
+    const row = result.rows[0]
+    res.send(row);
+}
+
 exports.scrapCunei = async (req, res) => {
     const response = await fetch('https://home.zcu.cz/~ksaskova/ListOfCuneiformSigns.html');
     const html = await response.text();

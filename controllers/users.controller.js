@@ -13,7 +13,7 @@ exports.login = async (req, res) => {
     
     let decoded;
     try {
-        decoded = await auth().verifyIdToken(token);
+        decoded = await auth.verifyIdToken(token);
     } catch (e) {
         console.log(e);
         return res.status(401).send("Unauthorized");

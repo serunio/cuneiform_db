@@ -56,5 +56,12 @@ exports.login = async (req, res) => {
 };
 
 exports.me = async (req, res) => {
-    res.status(200).send("ok")
+    const userId = req.decodedJWT.uid;
+    const result = await db.query(`SELECT blacklist from users where id=$1`, [userId])
+    const isBlacklisted = result.rows[0].blacklist
+    console.log(isBlacklisted)
+    if (isBlacklisted)
+        res.status(401).send('Blacklisted')
+    else
+        res.status(200).send("ok")
 }

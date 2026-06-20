@@ -10,6 +10,5 @@ admin.initializeApp({
 });
 
 const auth = getAuth();
-console.log(auth)
 
 module.exports = {admin, auth}

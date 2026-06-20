@@ -72,7 +72,7 @@ function makeBuffer(strokes:Stroke[]):Buffer {
         data = data.concat(s.slice(1).map(p => [p.x, p.y]).flat())
     }
     console.log(`max starts: ${Math.max(...starts)}`)
-    const bitNum = (arr:Array<number>) => Math.max(Math.ceil(Math.log2(Math.max(...arr))), 1)  ;
+    const bitNum = (arr:Array<number>) => Math.max(Math.ceil(Math.log2(Math.max(...arr))+1), 1)  ;
     const countBits = 7;
     const startsBits = bitNum(starts)
     const lengthsBits = bitNum(lengths)
@@ -88,20 +88,30 @@ function makeBuffer(strokes:Stroke[]):Buffer {
     // console.log(`\nPoliczony`)
     console.log(`size: ${size}`)
     const stream = new BitStream(new ArrayBuffer(size))
+    
     stream.writeBits(startsBits, 4)
+    console.log(`writing startBits=${startsBits} on 4 bits`)
     stream.writeBits(lengthsBits, 3)
+    console.log(`writing lengthsBits=${lengthsBits} on 3 bits`)
     stream.writeBits(dataBits, 3)
+    console.log(`writing dataBits=${dataBits} on 3 bits`)
 
     stream.writeBits(count, countBits)
+    console.log(`writing count=${count} on ${countBits} bits`)
+
     for (const n of starts) {
+        console.log(`writing start=${n} on ${startsBits} bits`)
         stream.writeBits(n, startsBits)
     }
     for (const n of lengths) {
+        console.log(`writing length=${n} on ${lengthsBits} bits`)
         stream.writeBits(n, lengthsBits)
     }
     for (const n of data) {
+        console.log(`writing data=${n} on ${dataBits} bits`)
         stream.writeBits(n, dataBits)
     }
+
 
     return stream.buffer
 }
@@ -111,28 +121,38 @@ function rebuildStrokes(buffer:Buffer):Stroke[] {
         const stream = new BitStream(buffer)
 
         const countBits = 7;
-        const startsBits = stream.readBits( 4)
+        const startsBits = stream.readBits(4)
+        console.log(`read startsBits=${startsBits} on 4 bits`)
         const lengthsBits = stream.readBits(3)
+        console.log(`read lengthsBits=${lengthsBits} on 3 bits`)
         const dataBits = stream.readBits(3)
+        console.log(`read dataBits=${dataBits} on 3 bits`)
 
         const outCount:number = stream.readBits(countBits)
+        console.log(`read outCount=${outCount} on ${countBits} bits`)
         const outStarts:Pair[] = []
         const outLengths:number[] = []
         let outData:Stroke[] = []
 
         for (let i = 0; i < outCount; i++) {
             const x = stream.readBits(startsBits)
+            console.log(`read start=${x} on ${startsBits} bits`)
             const y = stream.readBits(startsBits)
+            console.log(`read start=${y} on ${startsBits} bits`)
             outStarts.push({x, y})
         }
         for (let i = 0; i < outCount; i++) {
-            outLengths.push(stream.readBits(lengthsBits))
+            const length = stream.readBits(lengthsBits)
+            outLengths.push(length)
+            console.log(`read length=${length} on ${lengthsBits} bits`)
         }
         for (let i = 0; i < outCount; i++) {
             outData.push([outStarts[i]])
             for (let j = 0; j < outLengths[i]; j++) {
                 const x = stream.readBits(dataBits)
+                console.log(`read data=${x} on ${dataBits} bits`)
                 const y = stream.readBits(dataBits)
+                console.log(`read data=${y} on ${dataBits} bits`)
                 outData[i].push({x, y})
             }
         }
@@ -183,5 +203,6 @@ const strokes = {fromCsv: getStrokes, fromBuffer: decompressToStrokes}
 export {compress, decompress, strokes}
 
 
+const raw = 'M0 45L5 45L18 44L34 42L49 40L61 39L68 37M56 0L61 1L68 4L75 8L82 12L89 17M85 84L95 94L104 102L110 106M114 60L120 70L127 80L134 86M147 36L150 41L158 51L167 62L175 71'
 
-
+decompress(compress(raw))

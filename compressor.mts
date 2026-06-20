@@ -1,4 +1,5 @@
 import {BitStream} from 'bit-buffer'
+import { log } from 'node:console'
 
 type Pair = {x:number, y:number}
 type Stroke = Pair[]
@@ -162,6 +163,10 @@ function compressTest(raw:string) {
 
     const step4_buffer = makeBuffer(step3_zigzag)
     const step4_check = rebuildStrokes(step4_buffer)
+    const passed = JSON.stringify(step4_check) === JSON.stringify(step3_zigzag)
+    if(!passed){
+        console.log(raw)
+    }
     console.log(`step4 (buffer) passed: ${JSON.stringify(step4_check) === JSON.stringify(step3_zigzag)}`)
 }
 

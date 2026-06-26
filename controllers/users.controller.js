@@ -34,11 +34,19 @@ exports.login = async (req, res) => {
             );
         }
 
+        const result = await db.query(
+            'SELECT COUNT(*) FROM submissions WHERE user_id = $1',
+            [decoded.uid]
+        )
+
+        const submissionsCount = result.rows[0]
+
         const payload = {
             uid: decoded.uid,
             name: decoded.name,
             email: decoded.email,
-            admin: user?.admin ?? false
+            admin: user?.admin ?? false,
+            isNew: submissionsCount === 0
         };
 
         const jwtToken = jwt.sign(

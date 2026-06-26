@@ -159,6 +159,7 @@ function rebuildStrokes(buffer:Buffer):Stroke[] {
 }
 
 function compress(raw:string):Buffer {
+    compressTest(raw)
     return makeBuffer(zigzagEncode(deltaEncode(getStrokes(raw))))
 }
 

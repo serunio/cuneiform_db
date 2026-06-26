@@ -34,12 +34,12 @@ exports.login = async (req, res) => {
             );
         }
 
-        const result = await db.query(
+        const isNewResult = await db.query(
             'SELECT COUNT(*) FROM submissions WHERE user_id = $1',
             [decoded.uid]
         )
 
-        const submissionsCount = result.rows[0]
+        const submissionsCount = isNewResult.rows[0]
 
         const payload = {
             uid: decoded.uid,

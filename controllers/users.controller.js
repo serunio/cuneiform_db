@@ -39,7 +39,7 @@ exports.login = async (req, res) => {
             [decoded.uid]
         )
 
-        const submissionsCount = isNewResult.rows[0]
+        const submissionsCount = parseInt(isNewResult.rows[0].count)
 
         const payload = {
             uid: decoded.uid,

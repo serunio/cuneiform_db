@@ -29,6 +29,7 @@ exports.getAll = async (req, res) => {
                 s.user_id,
                 s.id,
                 s.data,
+                s.timestamp,
                 c.unicode,
                 c.phonetic,
                 u.name,

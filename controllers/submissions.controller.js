@@ -36,6 +36,7 @@ exports.getAll = async (req, res) => {
             FROM submissions s
             JOIN cunei c ON s.cunei_id = c.id
             JOIN users u ON s.user_id = u.id
+            WHERE u.blacklist = false
         `);
 
         const rowsDecompressed = result.rows.map(r => ({

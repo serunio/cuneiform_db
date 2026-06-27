@@ -30,9 +30,12 @@ exports.getAll = async (req, res) => {
                 s.id,
                 s.data,
                 c.unicode,
-                c.phonetic
+                c.phonetic,
+                u.name,
+                u.email
             FROM submissions s
             JOIN cunei c ON s.cunei_id = c.id
+            JOIN users u ON s.user_id = u.id
         `);
 
         const rowsDecompressed = result.rows.map(r => ({

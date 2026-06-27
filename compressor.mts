@@ -74,37 +74,37 @@ function makeBuffer(strokes:Stroke[]):Buffer {
     const startsBits = bitNum(starts)
     const lengthsBits = bitNum(lengths)
     const dataBits = bitNum(data)
-    console.log(data)
-    console.log(Math.max(...data))
-    console.log(Math.log2(Math.max(...data))+1)
+    // console.log(data)
+    // console.log(Math.max(...data))
+    // console.log(Math.log2(Math.max(...data))+1)
 
     const startsSize = starts.length * startsBits / 8
     const lengthsSize = lengths.length * lengthsBits/8
     const dataSize = data.length * dataBits/8
     const size = Math.ceil(startsSize + lengthsSize + dataSize + (countBits + 10) / 8)
-    console.log(`size: ${size}`)
+    // console.log(`size: ${size}`)
     const stream = new BitStream(new ArrayBuffer(size))
     
     stream.writeBits(startsBits, 4)
-    console.log(`writing startBits=${startsBits} on 4 bits`)
+    // console.log(`writing startBits=${startsBits} on 4 bits`)
     stream.writeBits(lengthsBits, 3)
-    console.log(`writing lengthsBits=${lengthsBits} on 3 bits`)
+    // console.log(`writing lengthsBits=${lengthsBits} on 3 bits`)
     stream.writeBits(dataBits, 3)
-    console.log(`writing dataBits=${dataBits} on 3 bits`)
+    // console.log(`writing dataBits=${dataBits} on 3 bits`)
 
     stream.writeBits(count, countBits)
-    console.log(`writing count=${count} on ${countBits} bits`)
+    // console.log(`writing count=${count} on ${countBits} bits`)
 
     for (const n of starts) {
-        console.log(`writing start=${n} on ${startsBits} bits`)
+        // console.log(`writing start=${n} on ${startsBits} bits`)
         stream.writeBits(n, startsBits)
     }
     for (const n of lengths) {
-        console.log(`writing length=${n} on ${lengthsBits} bits`)
+        // console.log(`writing length=${n} on ${lengthsBits} bits`)
         stream.writeBits(n, lengthsBits)
     }
     for (const n of data) {
-        console.log(`writing data=${n} on ${dataBits} bits`)
+        // console.log(`writing data=${n} on ${dataBits} bits`)
         stream.writeBits(n, dataBits)
     }
 
@@ -118,40 +118,40 @@ function rebuildStrokes(buffer:Buffer):Stroke[] {
 
         const countBits = 7;
         const startsBits = stream.readBits(4)
-        console.log(`read startsBits=${startsBits} on 4 bits`)
+        // console.log(`read startsBits=${startsBits} on 4 bits`)
         const lengthsBits = stream.readBits(3)
-        console.log(`read lengthsBits=${lengthsBits} on 3 bits`)
+        // console.log(`read lengthsBits=${lengthsBits} on 3 bits`)
         let dataBits = stream.readBits(3)
         if (dataBits === 0)
             dataBits = 8
             
-        console.log(`read dataBits=${dataBits} on 3 bits`)
+        // console.log(`read dataBits=${dataBits} on 3 bits`)
 
         const outCount:number = stream.readBits(countBits)
-        console.log(`read outCount=${outCount} on ${countBits} bits`)
+        // console.log(`read outCount=${outCount} on ${countBits} bits`)
         const outStarts:Pair[] = []
         const outLengths:number[] = []
         let outData:Stroke[] = []
 
         for (let i = 0; i < outCount; i++) {
             const x = stream.readBits(startsBits)
-            console.log(`read start=${x} on ${startsBits} bits`)
+            // console.log(`read start=${x} on ${startsBits} bits`)
             const y = stream.readBits(startsBits)
-            console.log(`read start=${y} on ${startsBits} bits`)
+            // console.log(`read start=${y} on ${startsBits} bits`)
             outStarts.push({x, y})
         }
         for (let i = 0; i < outCount; i++) {
             const length = stream.readBits(lengthsBits)
             outLengths.push(length)
-            console.log(`read length=${length} on ${lengthsBits} bits`)
+            // console.log(`read length=${length} on ${lengthsBits} bits`)
         }
         for (let i = 0; i < outCount; i++) {
             outData.push([outStarts[i]!])
             for (let j = 0; j < outLengths[i]!; j++) {
                 const x = stream.readBits(dataBits)
-                console.log(`read data=${x} on ${dataBits} bits`)
+                // console.log(`read data=${x} on ${dataBits} bits`)
                 const y = stream.readBits(dataBits)
-                console.log(`read data=${y} on ${dataBits} bits`)
+                // console.log(`read data=${y} on ${dataBits} bits`)
                 outData[i]!.push({x, y})
             }
         }

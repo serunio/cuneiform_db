@@ -72,3 +72,16 @@ exports.me = async (req, res) => {
     else
         res.status(200).send("ok")
 }
+
+exports.blacklist = async (req, res) => {
+    const userId = req.body.user_id
+    try {
+        await db.query('UPDATE users SET blacklist = true WHERE id = $1', [userId])
+        res.status(200).send('ok')
+    } catch (e) {
+        console.log(e);
+        res.status(500).send("db error");
+    }
+
+    
+}

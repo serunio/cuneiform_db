@@ -1,9 +1,7 @@
 import {BitStream} from 'bit-buffer'
-import { log } from 'node:console'
 
 type Pair = {x:number, y:number}
 type Stroke = Pair[]
-type ColumnStroke = {x: number[], y: number[]}
 
 function getStrokes(raw:string):Stroke[] {
     const strokesRaw = raw.split('M').slice(1)
@@ -33,8 +31,8 @@ function deltaDecode(strokes:Stroke[]):Stroke[] {
     const copy = structuredClone(strokes)
     for (const stroke of copy) {
         for ( let i = 1; i < stroke.length; i++) {
-            stroke[i].x += stroke[i-1].x
-            stroke[i].y += stroke[i-1].y
+            stroke[i]!.x += stroke[i-1]!.x
+            stroke[i]!.y += stroke[i-1]!.y
         }
     }
     return copy
@@ -66,8 +64,8 @@ function makeBuffer(strokes:Stroke[]):Buffer {
     let data:Array<number> = []
     const count = strokes.length
     for (const s of strokes) {
-        starts.push(s[0].x)
-        starts.push(s[0].y)
+        starts.push(s[0]!.x)
+        starts.push(s[0]!.y)
         lengths.push(s.length - 1)
         data = data.concat(s.slice(1).map(p => [p.x, p.y]).flat())
     }
@@ -148,13 +146,13 @@ function rebuildStrokes(buffer:Buffer):Stroke[] {
             console.log(`read length=${length} on ${lengthsBits} bits`)
         }
         for (let i = 0; i < outCount; i++) {
-            outData.push([outStarts[i]])
-            for (let j = 0; j < outLengths[i]; j++) {
+            outData.push([outStarts[i]!])
+            for (let j = 0; j < outLengths[i]!; j++) {
                 const x = stream.readBits(dataBits)
                 console.log(`read data=${x} on ${dataBits} bits`)
                 const y = stream.readBits(dataBits)
                 console.log(`read data=${y} on ${dataBits} bits`)
-                outData[i].push({x, y})
+                outData[i]!.push({x, y})
             }
         }
         return outData

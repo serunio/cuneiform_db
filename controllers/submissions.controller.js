@@ -4,6 +4,8 @@ const {compress, decompress} = require('../compressor.mts')
 exports.add = async (req, res) => {
     const cuneiId = req.body.cuneiId;
     const data = req.body.submission;
+    if (data === "")
+        res.send('empty data')
     const dataCompressed = compress(data);
     const userId = req.decodedJWT.uid;
 

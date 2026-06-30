@@ -92,6 +92,7 @@ exports.guess = async (req, res) => {
         res.send('empty data')
     const sign= {N:0, NE:0, E:0, SE:0, S:0, SW:0, W:0, NW:0, H:0, crosses:0}
     const features = {...sign, ...getFeatures(strokes.fromBuffer(r.data))}
+    console.log(features)
     const result = await db.query(
         `select * from cunei_stats
             where n=$1 and
@@ -106,6 +107,7 @@ exports.guess = async (req, res) => {
             where crosses=$10`,
             [features.N, features.NE, features.E, features.SE, features.S, features.SW, features.W, features.NW, features.H, features.crosses]
     )   
+    console.log(result.rows)
     res.send(result.rows)
 }
 

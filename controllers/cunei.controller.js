@@ -2,7 +2,7 @@ const { user } = require('pg/lib/defaults');
 const db = require('../src/db');
 const {JSDOM} = require('jsdom');
 const {strokes} = require('./../compressor.mts')
-const {getFeatures} = require('./../transform')
+const {getFeatures} = require('./../transform.ts')
 
 exports.getCuneiAll = async (req, res) => {
     const result = await db.query('select * from cunei');

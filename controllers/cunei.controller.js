@@ -87,7 +87,11 @@ exports.getNext = async (req, res) => {
 }
 
 exports.guess = async (req, res) => {
+    console.log("==========================================")
+    console.log("/guess")
+    console.log(req)
     const data = req.body.submission;
+    console.log(data)
     if (data === "")
         res.send('empty data')
     const sign= {N:0, NE:0, E:0, SE:0, S:0, SW:0, W:0, NW:0, H:0, crosses:0}

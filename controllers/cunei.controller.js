@@ -1,6 +1,8 @@
 const { user } = require('pg/lib/defaults');
 const db = require('../src/db');
 const {JSDOM} = require('jsdom');
+const {strokes} = require('./../compressor.mts')
+const {getFeatures} = require('./../transform.mts')
 
 exports.getCuneiAll = async (req, res) => {
     const result = await db.query('select * from cunei');
@@ -84,26 +86,25 @@ exports.getNext = async (req, res) => {
     res.send(row);
 }
 
-exports.getTransformed = async (req, res) => {
+exports.guess = async (req, res) => {
+    const data = req.body.submission;
+    if (data === "")
+        res.send('empty data')
+    const sign= {N:0, NE:0, E:0, SE:0, S:0, SW:0, W:0, NW:0, H:0, crosses:0}
+    const features = {...sign, ...getFeatures(strokes.fromBuffer(r.data))}
     const result = await db.query(
-        `SELECT 
-            s.cunei_id, 
-            c.phonetic,
-            c.unicode,
-            ROUND(AVG(n)) as n, 
-            ROUND(AVG(ne)) as ne, 
-            ROUND(AVG(e)) as e, 
-            ROUND(AVG(se)) as se, 
-            ROUND(AVG(s)) as s, 
-            ROUND(AVG(sw)) as sw, 
-            ROUND(AVG(w)) as w, 
-            ROUND(AVG(nw)) as nw, 
-            ROUND(AVG(h)) as h, 
-            ROUND(AVG(crosses)) as crosses
-        FROM processed_submissions ps 
-            join submissions s on ps.submission_id = s.id 
-            join cunei c on s.cunei_id = c.id 
-        group by s.cunei_id, c.phonetic, c.unicode;`
+        `select * from cunei_stats
+            where n=$1 and
+            where ne=$2 and
+            where e=$3 and
+            where se=$4 and
+            where s=$5 and
+            where sw=$6 and
+            where w=$7 and
+            where nw=$8 and
+            where h=$9 and
+            where crosses=$10`,
+            [features.N, features.NE, features.E, features.SE, features.S, features.SW, features.W, features.NW, features.H, features.crosses]
     )   
     res.send(result.rows)
 }

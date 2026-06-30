@@ -24,7 +24,7 @@ async function main() {
             ORDER BY s.timestamp DESC
         `);
     const rows = result.rows
-    let sign:Sign = {phonetic:"", N:0, NE:0, E:0, SE:0, S:0, SW:0, W:0, NW:0, H:0, crosses:0}
+    const sign:Sign = {phonetic:"", N:0, NE:0, E:0, SE:0, S:0, SW:0, W:0, NW:0, H:0, crosses:0}
     const processedSigns = rows.map(r => ({...sign, id: Number(r.id), ...getFeatures(strokes.fromBuffer(r.data))}))
     
     const values: any[] = [];
@@ -173,3 +173,5 @@ function getOrientation(dx:number, dy:number):string {
     }
     return ""
 }
+
+export {getFeatures}

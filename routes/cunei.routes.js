@@ -10,5 +10,6 @@ router.post('/choose/:id', m.verifyJWT, m.verifyAdmin, c.chooseCunei)
 router.get('/:id', c.getCunei)
 router.get('/:id/next', c.getNextCunei)
 router.get('/:id/previous', c.getPreviousCunei)
+router.get('/transformed', c.getTransformed)
 
 module.exports = router;

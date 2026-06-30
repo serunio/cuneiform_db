@@ -84,6 +84,30 @@ exports.getNext = async (req, res) => {
     res.send(row);
 }
 
+exports.getTransformed = async (req, res) => {
+    const result = await db.query(
+        `SELECT 
+            s.cunei_id, 
+            c.phonetic,
+            c.unicode,
+            ROUND(AVG(n)) as n, 
+            ROUND(AVG(ne)) as ne, 
+            ROUND(AVG(e)) as e, 
+            ROUND(AVG(se)) as se, 
+            ROUND(AVG(s)) as s, 
+            ROUND(AVG(sw)) as sw, 
+            ROUND(AVG(w)) as w, 
+            ROUND(AVG(nw)) as nw, 
+            ROUND(AVG(h)) as h, 
+            ROUND(AVG(crosses)) as crosses
+        FROM processed_submissions ps 
+            join submissions s on ps.submission_id = s.id 
+            join cunei c on s.cunei_id = c.id 
+        group by s.cunei_id, c.phonetic, c.unicode;`
+    )   
+    res.send(result.rows)
+}
+
 exports.scrapCunei = async (req, res) => {
     const response = await fetch('https://home.zcu.cz/~ksaskova/ListOfCuneiformSigns.html');
     const html = await response.text();

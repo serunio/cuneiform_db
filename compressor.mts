@@ -190,3 +190,4 @@ function decompressToStrokes(buffer:Buffer):Stroke[] {
 const strokes = {fromCsv: getStrokes, fromBuffer: decompressToStrokes}
 
 export {compress, decompress, strokes}
+export type { Stroke, Pair }

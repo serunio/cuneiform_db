@@ -174,4 +174,4 @@ function getOrientation(dx:number, dy:number):string {
     return ""
 }
 
-export {getFeatures}
+module.exports = {getFeatures}

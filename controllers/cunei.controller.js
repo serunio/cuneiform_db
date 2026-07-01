@@ -89,22 +89,22 @@ exports.getNext = async (req, res) => {
 exports.guess = async (req, res) => {
     const data = req.body.submission;
     if (data === "")
-        res.send('empty data')
+        return res.send('empty data')
     const sign= {N:0, NE:0, E:0, SE:0, S:0, SW:0, W:0, NW:0, H:0, crosses:0}
     const features = {...sign, ...getFeatures(strokes.fromCsv(data))}
     console.log(features)
     const result = await db.query(
         `select * from cunei_stats
             where n=$1 and
-            where ne=$2 and
-            where e=$3 and
-            where se=$4 and
-            where s=$5 and
-            where sw=$6 and
-            where w=$7 and
-            where nw=$8 and
-            where h=$9 and
-            where crosses=$10`,
+            ne=$2 and
+            e=$3 and
+            se=$4 and
+            s=$5 and
+            sw=$6 and
+            w=$7 and
+            nw=$8 and
+            h=$9 and
+            crosses=$10`,
             [features.N, features.NE, features.E, features.SE, features.S, features.SW, features.W, features.NW, features.H, features.crosses]
     )   
     console.log(result.rows)

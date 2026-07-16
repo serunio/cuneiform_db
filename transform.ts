@@ -1,5 +1,7 @@
+require('dotenv').config();
+
 const db = require('./src/db')
-const {strokes} = require('./compressor.mts')
+const {strokes, decompress} = require('./compressor.mts')
 import type {Stroke, Pair} from './compressor.mjs'
 type SimpleStroke = {first:Pair, middle:Pair, last:Pair}
 type Sign = {phonetic:string, N:number, NE:number, E:number, SE:number, S:number, SW:number, W:number, NW:number, H:number, crosses:number}
@@ -25,43 +27,43 @@ async function main() {
         `);
     const rows = result.rows
     const sign:Sign = {phonetic:"", N:0, NE:0, E:0, SE:0, S:0, SW:0, W:0, NW:0, H:0, crosses:0}
-    const processedSigns = rows.map(r => ({...sign, id: Number(r.id), ...getFeatures(strokes.fromBuffer(r.data))}))
-    
+    const processedSigns = rows.map(r => ({...sign, id: Number(r.id), ...getFeatures(strokes.fromBuffer(r.data)), phonetic: r.phonetic, unicode: r.unicode, raw: decompress(r.data)}))
+    console.log(processedSigns.filter((s:Sign) => s.S === 3 && s.E + s.SE + s.crosses === 0))
     const values: any[] = [];
     const placeholders: string[] = [];
 
-    processedSigns.forEach((sign, i) => {
-        const p = i * 11;
+    // processedSigns.forEach((sign, i) => {
+    //     const p = i * 11;
 
-        placeholders.push(
-            `($${p+1}, $${p+2}, $${p+3}, $${p+4}, $${p+5}, $${p+6}, $${p+7}, $${p+8}, $${p+9}, $${p+10}, $${p+11})`
-        );
+    //     placeholders.push(
+    //         `($${p+1}, $${p+2}, $${p+3}, $${p+4}, $${p+5}, $${p+6}, $${p+7}, $${p+8}, $${p+9}, $${p+10}, $${p+11})`
+    //     );
         
-        values.push(
-            sign.id,
-            sign.N,
-            sign.NE,
-            sign.E,
-            sign.SE,
-            sign.S,
-            sign.SW,
-            sign.W,
-            sign.NW,
-            sign.H,
-            sign.crosses
-        );
-    });
+    //     values.push(
+    //         sign.id,
+    //         sign.N,
+    //         sign.NE,
+    //         sign.E,
+    //         sign.SE,
+    //         sign.S,
+    //         sign.SW,
+    //         sign.W,
+    //         sign.NW,
+    //         sign.H,
+    //         sign.crosses
+    //     );
+    // });
 
     
 
-    await db.query(`
-        INSERT INTO processed_submissions (
-            submission_id,
-            n, ne, e, se, s, sw, w, nw,
-            h, crosses
-        )
-        VALUES ${placeholders.join(",")}
-    `, values);
+    // await db.query(`
+        // INSERT INTO processed_submissions (
+            // submission_id,
+            // n, ne, e, se, s, sw, w, nw,
+            // h, crosses
+        // )
+        // VALUES ${placeholders.join(",")}
+    // `, values);
     
 }
 
@@ -69,7 +71,76 @@ main()
 
 function getFeatures(data:Stroke[]) {
     const simpleStrokes = data.map((s:Stroke) => simplify(s))
-    return {...getTypes(simpleStrokes), crosses: crossCount(simpleStrokes)}
+    return {
+        ...getTypes(simpleStrokes), 
+        crosses: crossCount(simpleStrokes), 
+        ...avgStart(simpleStrokes), 
+        maxLength: maxLength(simpleStrokes), 
+        minLength: minLength(simpleStrokes),
+        ...massCenterSimple(simpleStrokes),
+        ...massCenterPoints(data),
+        ...massCenter(data)
+    }
+}
+
+function massCenterSimple(data:SimpleStroke[]) {
+    const total = data.reduce((acc:Pair, stroke:SimpleStroke) => {
+        acc.x += (stroke.first.x + stroke.middle.x + stroke.last.x)/3
+        acc.y += (stroke.first.y + stroke.middle.y + stroke.last.y)/3
+        return acc
+    }, {x:0, y:0})
+    return {massCenterSimpleX:total.x/data.length, massCenterSimpleY:total.y/data.length}
+}
+
+function massCenterPoints(data:Stroke[]) {
+    // flatten the strokes into a single array of points
+    const points = data.flatMap((stroke:Stroke) => stroke)
+    const total = points.reduce((acc:Pair, point:Pair) => {
+        acc.x += point.x
+        acc.y += point.y
+        return acc
+    }, {x:0, y:0})
+    return {massCenterPointsX:total.x/points.length, massCenterPointsY:total.y/points.length}
+}
+
+function massCenter(data:Stroke[]) {
+    // flatten the strokes into a single array of points
+    const points = data.flatMap((stroke:Stroke) => stroke)
+    // weigted average of the segments centers, weighted by the length of the segment
+    const total = points.reduce((acc:{x:number, y:number, length:number}, point:Pair, index:number) => {
+        if (index < points.length - 1) {
+            const nextPoint = points[index + 1]!
+            const length = Math.sqrt(Math.pow(nextPoint.x - point.x, 2) + Math.pow(nextPoint.y - point.y, 2))
+            acc.x += (point.x + nextPoint.x) / 2 * length
+            acc.y += (point.y + nextPoint.y) / 2 * length
+            acc.length += length
+        }
+        return acc
+    }, {x:0, y:0, length:0})
+    return {massCenterX:total.x/total.length, massCenterY:total.y/total.length}
+}
+
+function avgStart(data:SimpleStroke[]) {
+    const total = data.reduce((acc:Pair, stroke:SimpleStroke) => {
+        acc.x += stroke.first.x
+        acc.y += stroke.first.y
+        return acc
+    }, {x:0, y:0})
+    return {avgStartX:total.x/data.length, avgStartY:total.y/data.length}
+}
+
+function maxLength(data:SimpleStroke[]):number {
+    return data.reduce((max:number, stroke:SimpleStroke) => {
+        const length = Math.sqrt(Math.pow(stroke.last.x - stroke.first.x, 2) + Math.pow(stroke.last.y - stroke.first.y, 2))
+        return length > max ? length : max
+    }, 0)
+}
+
+function minLength(data:SimpleStroke[]):number {
+    return data.reduce((min:number, stroke:SimpleStroke) => {
+        const length = Math.sqrt(Math.pow(stroke.last.x - stroke.first.x, 2) + Math.pow(stroke.last.y - stroke.first.y, 2))
+        return length < min ? length : min
+    }, Number.MAX_VALUE)
 }
 
 function crossCount(strokes:SimpleStroke[]):number {

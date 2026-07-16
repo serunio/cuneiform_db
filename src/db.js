@@ -8,6 +8,8 @@ const db = new Pool({
     family: 4
 });
 
+console.log(process.env.DATABASE_URL)
+
 async function initDb() {
     await db.query(`
         CREATE TABLE IF NOT EXISTS cunei
